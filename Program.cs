@@ -12,16 +12,9 @@ namespace ThreeNplus1
 
         public static void Main(string[] arguments)
         {
-            Thread thread = new Thread(() => calculateMaxCycleLength(arguments), STACK_SIZE);
-            thread.Start();
-            thread.Join();
-            displayResults(arguments);
-        }
-
-        private static void calculateMaxCycleLength(string[] arguments)
-        {
             sequencer = initializeSequencer(arguments);
             maxCycleLength = sequencer.calculateMaxCycleLength();
+            displayResults(arguments);
         }
 
         private static Sequencer initializeSequencer(string[] arguments)

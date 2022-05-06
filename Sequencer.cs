@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Concurrent;
 
 namespace ThreeNplus1
 {
@@ -26,12 +26,13 @@ namespace ThreeNplus1
 
         public int calculateMaxCycleLength()
         {
+            ConcurrentDictionary<long, int> cycleLengths = new ConcurrentDictionary<long, int>();
+
             int maxCycleLength = 0;
-            for (int item = start; item <= end; ++item)
-            {
-                int cycleLength = generator.calculateCycleLength(item);
+            Parallel.For(start, end, item => {
+                int cycleLength = generator.calculateCycleLength(cycleLengths, item);
                 maxCycleLength = Math.Max(maxCycleLength, cycleLength);
-            }
+            });
             return maxCycleLength;
         }
     }
