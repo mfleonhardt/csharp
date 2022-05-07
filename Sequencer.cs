@@ -72,5 +72,25 @@ namespace ThreeNplus1
 
             return maxCyclesLengthsFromThreads.Max(); ;
         }
+
+        public int calculateMaxCycleLengthThreadSafeSupaFast()
+        {
+            ConcurrentDictionary<long, int> cycleLengths = new ConcurrentDictionary<long, int>();
+
+            Parallel.For(
+                start, // inclusive start for the index
+                end, // exclusive end for the index
+                // below is our parallel action
+                (loopIndex) => generator.calculateCycleLength(cycleLengths, loopIndex)
+                );
+
+            // because we are already storing each cycle length in the ConcurrentDictionary
+            // .. let's just use that to find the max (minimizing our operations per iteration)
+            return cycleLengths
+                // get the cycleLengths out of the dictionary
+                .Select(keyValue => keyValue.Value)
+                // get the longest one
+                .Max();
+        }
     }
 }

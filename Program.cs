@@ -17,10 +17,11 @@ namespace ThreeNplus1
 
             int maxCycleLengthOriginal = 0;
             int maxCycleLengthRefactor = 0;
+            int maxCycleLengthSupaFast = 0;
 
             // lets run over and over until we see a error caused by cross-thread updates
             // .. on the original method
-            while (maxCycleLengthOriginal == maxCycleLengthRefactor)
+            while (maxCycleLengthOriginal == maxCycleLengthRefactor && maxCycleLengthRefactor == maxCycleLengthSupaFast)
             {
                 watch.Restart();
                 maxCycleLengthRefactor = sequencer.calculateMaxCycleLengthThreadSafe();
@@ -37,6 +38,14 @@ namespace ThreeNplus1
 
                 Console.WriteLine("Original: \r\n-- Max Cycle Length: {0}\r\n-- Run time (ticks): {1}",
                     maxCycleLengthOriginal, watch.ElapsedTicks);
+
+
+                watch.Restart();
+                maxCycleLengthSupaFast = sequencer.calculateMaxCycleLengthThreadSafeSupaFast();
+                watch.Stop();
+
+                Console.WriteLine("SupaFast: \r\n-- Max Cycle Length: {0}\r\n-- Run time (ticks): {1}",
+                    maxCycleLengthSupaFast, watch.ElapsedTicks);
 
 
                 Console.WriteLine("\r\n");
