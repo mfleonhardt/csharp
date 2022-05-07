@@ -77,20 +77,45 @@ namespace ThreeNplus1
         {
             ConcurrentDictionary<long, int> cycleLengths = new ConcurrentDictionary<long, int>();
 
+            int maxCycleLength = 0;
+
             Parallel.For(
                 start, // inclusive start for the index
                 end, // exclusive end for the index
                 // below is our parallel action
-                (loopIndex) => generator.calculateCycleLength(cycleLengths, loopIndex)
-                );
+                (loopIndex) =>
+                {
+                    int thisCycleMax = generator.calculateCycleLength(cycleLengths, loopIndex);
 
-            // because we are already storing each cycle length in the ConcurrentDictionary
-            // .. let's just use that to find the max (minimizing our operations per iteration)
-            return cycleLengths
-                // get the cycleLengths out of the dictionary
-                .Select(keyValue => keyValue.Value)
-                // get the longest one
-                .Max();
+                    bool failedToUpdateMaxBecauseItChanged = false;
+                    do
+                    {
+                        // get the current max value into a new variable for this comparison
+                        int oldRunningMax = maxCycleLength; // 64-bit system int reads are atomic
+
+                        int newRunningMax = Math.Max(oldRunningMax, thisCycleMax);
+
+                        // only try to set maxCycleLength if necessary (because we have to block to do so)
+                        if (newRunningMax > oldRunningMax)
+                        {
+                            // maxCycleLength will only be updated if its current value still matches oldRunningMax
+                            // .. Interlocked will block other parallel Interlocked call until this one completes
+                            int valueOfMaxWhenExchangeAttempted =
+                                Interlocked.CompareExchange(ref maxCycleLength, newRunningMax, oldRunningMax);
+
+                            // if the value of max when we try to exchange it for our new max does not equal
+                            // .. the value that we read into oldRunningMax, then this calculation is invalid
+                            // .. because another parallel method has already set a new max value
+                            // we need to re-run our max value calculation based on the new max
+                            failedToUpdateMaxBecauseItChanged = valueOfMaxWhenExchangeAttempted != oldRunningMax;
+                        }
+
+
+                    } while (failedToUpdateMaxBecauseItChanged);
+
+                });
+
+            return maxCycleLength;
         }
     }
 }
