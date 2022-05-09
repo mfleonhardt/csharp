@@ -93,15 +93,13 @@ namespace ThreeNplus1
                         // get the current max value into a new variable for this comparison
                         int oldRunningMax = maxCycleLength; // 64-bit system int reads are atomic
 
-                        int newRunningMax = Math.Max(oldRunningMax, thisCycleMax);
-
                         // only try to set maxCycleLength if necessary (because we have to block to do so)
-                        if (newRunningMax > oldRunningMax)
+                        if (thisCycleMax > oldRunningMax)
                         {
                             // maxCycleLength will only be updated if its current value still matches oldRunningMax
                             // .. Interlocked will block other parallel Interlocked call until this one completes
                             int valueOfMaxWhenExchangeAttempted =
-                                Interlocked.CompareExchange(ref maxCycleLength, newRunningMax, oldRunningMax);
+                                Interlocked.CompareExchange(ref maxCycleLength, thisCycleMax, oldRunningMax);
 
                             // if the value of max when we try to exchange it for our new max does not equal
                             // .. the value that we read into oldRunningMax, then this calculation is invalid
