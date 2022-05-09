@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "3Nplus1": {
+      "commandName": "Project",
+      "commandLineArgs": "900 1000"
+    }
+  }
+}

@@ -13,7 +13,54 @@ namespace ThreeNplus1
         public static void Main(string[] arguments)
         {
             sequencer = initializeSequencer(arguments);
-            maxCycleLength = sequencer.calculateMaxCycleLength();
+            var watch = new System.Diagnostics.Stopwatch();
+
+            int maxCycleLengthOriginal = 0;
+            int maxCycleLengthRefactor = 0;
+            int maxCycleLengthSupaFast = 0;
+
+            // lets run over and over until we see a error caused by cross-thread updates
+            // .. on the original method
+            while (maxCycleLengthOriginal == maxCycleLengthRefactor && maxCycleLengthRefactor == maxCycleLengthSupaFast)
+            {
+                watch.Restart();
+                maxCycleLengthRefactor = sequencer.calculateMaxCycleLengthThreadSafe();
+                watch.Stop();
+
+                Console.WriteLine("Refactor: \r\n-- Max Cycle Length: {0}\r\n-- Run time (ticks): {1}",
+                    maxCycleLengthRefactor, watch.ElapsedTicks);
+
+
+
+                watch.Restart();
+                maxCycleLengthOriginal = sequencer.calculateMaxCycleLength();
+                watch.Stop();
+
+                Console.WriteLine("Original: \r\n-- Max Cycle Length: {0}\r\n-- Run time (ticks): {1}",
+                    maxCycleLengthOriginal, watch.ElapsedTicks);
+
+
+                watch.Restart();
+                maxCycleLengthSupaFast = sequencer.calculateMaxCycleLengthThreadSafeSupaFast();
+                watch.Stop();
+
+                Console.WriteLine("SupaFast: \r\n-- Max Cycle Length: {0}\r\n-- Run time (ticks): {1}",
+                    maxCycleLengthSupaFast, watch.ElapsedTicks);
+
+
+                Console.WriteLine("\r\n");
+            }
+
+            // it's also interesting to note the difference in run times for the first run
+            // .. and how the run time converges as the dotnet runtime optimization get better
+            // .. and better at execution
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("AHA!!! The stars have aligned! You can see in the run above that something " +
+                "bad happened with the running max cycle count.");
+
+            System.Diagnostics.Debugger.Break();
+            maxCycleLength = maxCycleLengthRefactor;
             displayResults(arguments);
         }
 
